@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Растровые Алгоритмы</title>
+  <link rel="stylesheet" href="../static/css/styles.css">
+</head>
+<body>
+  <header>
+    <h1>Демонстрация растровых алгоритмов</h1>
+  </header>
+
+  <section class="controls">
+    <label>Алгоритм:
+      <select id="algorithm">
+        <option value="step">Пошаговый (Step)</option>
+        <option value="dda">ЦДА (DDA)</option>
+        <option value="bresenham">Брезенхем (линия)</option>
+        <option value="bresenham_circle">Брезенхем (окружность)</option>
+      </select>
+    </label>
+
+    <label>Масштаб:
+      <input type="number" id="scale" value="10" min="2" max="40">
+    </label>
+
+    <label>Толщина пикселя:
+      <input type="number" id="dotSize" value="2" min="1" max="40">
+    </label>
+
+    <button id="clearBtn">Очистить</button>
+    <button id="gridToggle">Сетка: Вкл</button>
+  </section>
+
+  <main>
+    <div class="canvas-container">
+      <canvas id="canvas" width="1200" height="800"></canvas>
+      <div id="coords" class="coords">Координаты: — , —</div>
+    </div>
+  </main>
+
+  <section class="results">
+    <div id="info" class="info">Выберите две точки для рисования.</div>
+    <div id="timings" class="timings"></div>
+  </section>
+
+  <footer>
+    <p>Step, DDA, Bresenham (линия и окружность). Время выполнения отображается после рисования.</p>
+  </footer>
+
+  <script src="../static/js/algorithms.js"></script>
+</body>
+</html>
