@@ -9,7 +9,6 @@
   dotSizeInput.value = scaleInput.value;
   const info = document.getElementById("info");
   const coords = document.getElementById("coords");
-  const timings = document.getElementById("timings");
   const container = document.querySelector(".canvas-container");
 
   let gridOn = true;
@@ -51,14 +50,14 @@
   }
 
   function clear() {
+    pointLabels.forEach(lbl => lbl.remove());
+    pointLabels = [];
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     drawGrid();
     first = null;
     segmentCount = 0;
     info.textContent = "Выберите две точки для рисования.";
     timings.innerHTML = "";
-    pointLabels.forEach(lbl => lbl.remove());
-    pointLabels = [];
   }
 
   function plot(gx, gy, color = "#000") {
@@ -67,7 +66,9 @@
   }
 
   function toGrid(x, y) {
-    return { gx: Math.round(x / scale), gy: Math.round(y / scale) };
+    const gx = Math.floor(x / scale);
+    const gy = Math.floor(y / scale);
+    return { gx, gy };
   }
 
   function addLabel(x, y, text, color) {
@@ -108,6 +109,7 @@
 
   function drawBresenhamLine(x0, y0, x1, y1, color) {
     let dx = Math.abs(x1 - x0);
+    const t0 = performance.now();
     let dy = Math.abs(y1 - y0);
     let sx = (x0 < x1) ? 1 : -1;
     let sy = (y0 < y1) ? 1 : -1;
@@ -115,7 +117,7 @@
     
     while(true) {
         plot(x0, y0, color);
-        if(x0 === x1 && y0 === y1) break;
+        if(x0 === x1 && y0 === y1) return performance.now() - t0;
         
         let e2 = 2 * err;
         if(e2 > -dy) {
@@ -163,39 +165,43 @@
     const alg = algSelect.value;
     const color = algColors[alg] || "#000";
 
+    const centerX = g.gx * scale + scale / 2;
+    const centerY = g.gy * scale + scale / 2;
+
     if (!first) {
-      first = g;
-      ctx.fillStyle = "red";
-      ctx.beginPath();
-      ctx.arc(g.gx * scale, g.gy * scale, 4, 0, Math.PI * 2);
-      ctx.fill();
+        first = g;
+        ctx.fillStyle = "red";
+        ctx.beginPath();
+        ctx.arc(centerX, centerY, 4, 0, Math.PI * 2);
+        ctx.fill();
 
-      addLabel(g.gx, g.gy, `Начало ${segmentCount + 1}`, "red");
-      info.textContent = `Первая точка (${g.gx}, ${g.gy})`;
+        addLabel(g.gx, g.gy, `Начало ${segmentCount + 1}`, "red");
+        info.textContent = `Первая точка (${g.gx}, ${g.gy})`;
     } else {
-      ctx.fillStyle = "green";
-      ctx.beginPath();
-      ctx.arc(g.gx * scale, g.gy * scale, 4, 0, Math.PI * 2);
-      ctx.fill();
+        ctx.fillStyle = "green";
+        const endCenterX = g.gx * scale + scale / 2;
+        const endCenterY = g.gy * scale + scale / 2;
+        ctx.beginPath();
+        ctx.arc(endCenterX, endCenterY, 4, 0, Math.PI * 2);
+        ctx.fill();
 
-      segmentCount++;
-      addLabel(g.gx, g.gy, `Конец ${segmentCount} `, "green");
+        segmentCount++;
+        addLabel(g.gx, g.gy, `Конец ${segmentCount}`, "green");
 
-      let time = 0;
-      if (alg === "step") time = drawStep(first.gx, first.gy, g.gx, g.gy, color);
-      if (alg === "dda") time = drawDDA(first.gx, first.gy, g.gx, g.gy, color);
-      if (alg === "bresenham") time = drawBresenhamLine(first.gx, first.gy, g.gx, g.gy, color);
-      if (alg === "bresenham_circle") {
+        let time = 0;
+        if (alg === "step") time = drawStep(first.gx, first.gy, g.gx, g.gy, color);
+        if (alg === "dda") time = drawDDA(first.gx, first.gy, g.gx, g.gy, color);
+        if (alg === "bresenham") time = drawBresenhamLine(first.gx, first.gy, g.gx, g.gy, color);
+        if (alg === "bresenham_circle") {
         const dx = g.gx - first.gx, dy = g.gy - first.gy;
-        const r = Math.round(Math.sqrt(dx*dx + dy*dy));
+        const r = Math.round(Math.sqrt(dx * dx + dy * dy));
         time = drawBresenhamCircle(first.gx, first.gy, r, color);
-      }
+        }
 
-      timings.innerHTML = `<p>${alg.toUpperCase()} — ${time.toFixed(3)} мс</p>` + timings.innerHTML;
-      info.textContent = `Отрезок ${segmentCount} нарисован (${alg}). Время: ${time.toFixed(3)} мс`;
-      first = null;
+        info.textContent = `Вторая точка (${g.gx}, ${g.gy})`;
+        first = null;
     }
-  });
+    });
 
   clearBtn.addEventListener("click", clear);
   gridToggle.addEventListener("click", () => {
